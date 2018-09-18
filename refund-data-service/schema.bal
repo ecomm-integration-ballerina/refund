@@ -1,9 +1,10 @@
 public type Refund record {
     int transactionId,
     string orderNo,
+    string kind,
     string invoiceId,
     string settlementId,
-    string trackingNumber,
+    string creditMemoId,
     string itemIds,
     string countryCode,
     string request,

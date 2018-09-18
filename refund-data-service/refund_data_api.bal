@@ -1,16 +1,31 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/mysql;
+import ballerinax/docker;
 
+@docker:Expose{}
 endpoint http:Listener refundListener {
-    host: "localhost",
-    port: 8089
+    port: 8280
 };
 
+@docker:Config {
+    name:"refund",
+    tag:"v1"
+}
 @http:ServiceConfig {
     basePath: "/refund"
 }
 service<http:Service> refundAPI bind refundListener {
+
+    @http:ResourceConfig {
+        methods:["POST"],
+        path: "/",
+        body: "refund"
+    }
+    addRefund (endpoint outboundEp, http:Request req, Refund refund) {
+        http:Response res = addRefund(req, untaint refund);
+        outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
+    }
 
     @http:ResourceConfig {
         methods:["POST"],
@@ -19,16 +34,6 @@ service<http:Service> refundAPI bind refundListener {
     }
     addRefunds (endpoint outboundEp, http:Request req, Refunds refunds) {
         http:Response res = addRefunds(req, refunds);
-        outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
-    }
-
-    @http:ResourceConfig {
-        methods:["POST"],
-        path: "/",
-        body: "refund"
-    }
-    addRefund (endpoint outboundEp, http:Request req, Refund refund) {
-        http:Response res = addRefund(req, refund);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 
@@ -47,7 +52,7 @@ service<http:Service> refundAPI bind refundListener {
         body: "refund"
     }
     updateProcessFlag (endpoint outboundEp, http:Request req, int tid, Refund refund) {
-        http:Response res = updateProcessFlag(req, tid, refund);
+        http:Response res = updateProcessFlag(req, untaint tid, refund);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 

@@ -1,6 +1,7 @@
 import ballerina/io;
 import ballerina/http;
 import ballerina/config;
+import ballerina/log;
 
 endpoint mysql:Client refundDB {
     host: config:getAsString("refund.db.host"),
@@ -12,89 +13,129 @@ endpoint mysql:Client refundDB {
     dbOptions: { useSSL: false, serverTimezone:"UTC" }
 };
 
+public function addRefund (http:Request req, Refund refund) returns http:Response {
+
+    http:Response res = new;
+
+    string sqlString =
+    "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID, CREDIT_MEMO_ID,COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG,
+        RETRY_COUNT,ERROR_MESSAGE,CREATED_TIME,LAST_UPDATED_TIME) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    log:printInfo("Calling refundDB->insert for OrderNo=" + refund.orderNo);
+
+    json resJson;
+    boolean isSuccessful;
+    transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
+
+        var ret = refundDB->update(sqlString, refund.orderNo, refund.kind, refund.invoiceId, refund.creditMemoId, refund.countryCode, 
+        refund.itemIds, refund.request, refund.processFlag, refund.retryCount, refund.errorMessage, refund.createdTime, refund.lastUpdatedTime);
+
+        match ret {
+            int insertedRows => {
+                log:printInfo("Calling refundDB->insert OrderNo=" + refund.orderNo + " succeeded");
+                isSuccessful = true;
+            }
+            error err => {
+                log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo + " failed", err = err);
+                retry;
+            }
+        }        
+    }     
+
+    if (isSuccessful) {
+        resJson = { "Status": "Refund is inserted to the staging database for order : " + refund.orderNo };
+    } else {
+        resJson = { "Status": "Failed to insert refund to the staging database for order : " + refund.orderNo };
+    }
+    
+    res.setJsonPayload(resJson);
+    return res;
+}
+
 public function addRefunds (http:Request req, Refunds refunds)
                     returns http:Response {
 
-    http:Response res = new;
+                        return new;
 
-    int numberOfRefunds = lengthof refunds.refunds;
+    // http:Response res = new;
 
-    int numberOfRecordsInserted;
-    error dbError;
-    transaction with retries = 4, oncommit = onCommitFunction,
-                     onabort = onAbortFunction {
+    // int numberOfRefunds = lengthof refunds.refunds;
 
-        string sqlString =
-        "INSERT INTO invoice(ORDER_NO,INVOICE_ID,SETTLEMENT_ID,COUNTRY_CODE,
-            PROCESS_FLAG,ERROR_MESSAGE,RETRY_COUNT,ITEM_IDS,TRACKING_NUMBER,REQUEST) VALUES (?,?,?,?,?,?,?,?,?,?)";
+    // int numberOfRecordsInserted;
+    // error dbError;
+    // transaction with retries = 4, oncommit = onCommitFunction,
+    //                  onabort = onAbortFunction {
 
-        foreach inv in refunds.refunds {
-            int|error result = refundDB->update(sqlString, inv.orderNo, inv.invoiceId, inv.settlementId, inv.countryCode,
-                inv.processFlag, inv.errorMessage, inv.retryCount, inv.itemIds, inv.trackingNumber, inv.request);
+    //     string sqlString =
+    //     "INSERT INTO invoice(ORDER_NO,INVOICE_ID,SETTLEMENT_ID,COUNTRY_CODE,
+    //         PROCESS_FLAG,ERROR_MESSAGE,RETRY_COUNT,ITEM_IDS,TRACKING_NUMBER,REQUEST) VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-            match result {
-                int c => {numberOfRecordsInserted += c;}
-                error err => { dbError = err; retry;}
+    //     foreach inv in refunds.refunds {
+    //         int|error result = refundDB->update(sqlString, inv.orderNo, inv.invoiceId, inv.settlementId, inv.countryCode,
+    //             inv.processFlag, inv.errorMessage, inv.retryCount, inv.itemIds, inv.trackingNumber, inv.request);
+
+    //         match result {
+    //             int c => {numberOfRecordsInserted += c;}
+    //             error err => { dbError = err; retry;}
+    //         }
+    //     }
+
+    //     io:println(numberOfRefunds);
+    //     io:println(numberOfRecordsInserted);
+
+    //     if (numberOfRecordsInserted != numberOfRefunds) {
+    //         abort;
+    //     }
+
+    // } onretry {
+    //     io:println("Retrying transaction");
+    // }
+
+    // json updateStatus;
+    // if (numberOfRefunds == numberOfRecordsInserted) {
+    //     updateStatus = { "Status": "Data Inserted Successfully" };
+    // } else {
+    //     updateStatus = { "Status": "Data Not Inserted", "Error": dbError.message};
+    // }
+
+    // res.setJsonPayload(updateStatus);
+    // return res;
+}
+
+public function updateProcessFlag (http:Request req, int tid, Refund refund)
+                    returns http:Response {
+
+    log:printInfo("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo);
+    string sqlString = "UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?";
+
+    json resJson;
+    boolean isSuccessful;
+    transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
+
+        var ret = refundDB->update(sqlString, refund.processFlag, refund.retryCount, tid);
+
+        match ret {
+            int insertedRows => {
+                log:printInfo("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo + " succeeded");
+                isSuccessful = true;
             }
-        }
+            error err => {
+                log:printError("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo + " failed", err = err);
+                retry;
+            }
+        }        
+    }     
 
-        io:println(numberOfRefunds);
-        io:println(numberOfRecordsInserted);
-
-        if (numberOfRecordsInserted != numberOfRefunds) {
-            abort;
-        }
-
-    } onretry {
-        io:println("Retrying transaction");
-    }
-
-    json updateStatus;
-    if (numberOfRefunds == numberOfRecordsInserted) {
-        updateStatus = { "Status": "Data Inserted Successfully" };
+    http:Response res = new;
+    if (isSuccessful) {
+        resJson = { "Status": "ProcessFlag is updated for order : " + tid };
+        res.statusCode = 202;
     } else {
-        updateStatus = { "Status": "Data Not Inserted", "Error": dbError.message};
+        resJson = { "Status": "Failed to update ProcessFlag for order : " + tid };
+        res.statusCode = 400;
     }
 
-    res.setJsonPayload(updateStatus);
-    return res;
-}
-
-public function addRefund (http:Request req, Refund refund)
-                    returns http:Response {
-
-    http:Response res = new;
-
-    json ret = insertRefund(refund);
-    res.setJsonPayload(ret);
-
-    io:println(ret);
-    return res;
-}
-
-public function updateProcessFlag (http:Request req, int tid, Refund inv)
-                    returns http:Response {
-
-    http:Response res = new;
-
-    var ret = refundDB->update("UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?",
-        inv.processFlag, inv.retryCount, tid);
-
-    json updateStatus;
-    match ret {
-        int retInt => {
-            log:printInfo("Refund is updated for tid " + tid);
-            updateStatus = { "status": "refund updated successfully" };
-            res.statusCode = 202;
-        }
-        error err => {
-            log:printError("Refund is not updated for tid " + tid, err = err);
-            updateStatus = { "status": "refund not updated", "error": err.message };
-            res.statusCode = 400;
-        }
-    }
-
-    res.setJsonPayload(updateStatus);
+    res.setJsonPayload(resJson);
     return res;
 }
 
@@ -154,30 +195,10 @@ public function getRefunds (http:Request req)
     return res;
 }
 
-public function insertRefund(Refund refund) returns (json) {
-    json updateStatus;
-    string sqlString =
-    "INSERT INTO refund(ORDER_NO,INVOICE_ID,SETTLEMENT_ID,COUNTRY_CODE,
-        PROCESS_FLAG,ERROR_MESSAGE,RETRY_COUNT,ITEM_IDS,TRACKING_NUMBER,REQUEST) VALUES (?,?,?,?,?,?,?,?,?,?)";
-
-    var ret = refundDB->update(sqlString, refund.orderNo, refund.invoiceId, refund.settlementId, refund.countryCode,
-        refund.processFlag, refund.errorMessage, refund.retryCount, refund.itemIds, refund.trackingNumber, refund.request);
-
-    match ret {
-        int updateRowCount => {
-            updateStatus = { "Status": "Data Inserted Successfully" };
-        }
-        error err => {
-            updateStatus = { "Status": "Data Not Inserted", "Error": err.message };
-        }
-    }
-    return updateStatus;
-}
-
 function onCommitFunction(string transactionId) {
-    io:println("Transaction: " + transactionId + " committed");
+    log:printInfo("Transaction: " + transactionId + " committed");
 }
 
 function onAbortFunction(string transactionId) {
-    io:println("Transaction: " + transactionId + " aborted");
+    log:printInfo("Transaction: " + transactionId + " aborted");
 }
