@@ -1,17 +1,11 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/mysql;
-import ballerinax/docker;
 
-@docker:Expose{}
 endpoint http:Listener refundListener {
     port: 8280
 };
 
-@docker:Config {
-    name:"refund",
-    tag:"v1"
-}
 @http:ServiceConfig {
     basePath: "/refund"
 }
