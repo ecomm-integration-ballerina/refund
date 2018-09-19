@@ -1,0 +1,39 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "refund-data-service"
+  name: "refund-data-service-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "refund-data-service"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env: []
+        envFrom: []
+        image: "rajkumar/refund-data-service:0.1.0"
+        imagePullPolicy: "IfNotPresent"
+        name: "refund-data-service-deployment"
+        ports:       
+        - containerPort: 8280
+          name: http         
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

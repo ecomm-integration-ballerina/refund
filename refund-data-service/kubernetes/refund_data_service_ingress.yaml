@@ -1,0 +1,23 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Ingress"
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+    kubernetes.io/ingress.class: "nginx"
+  finalizers: []
+  labels:
+    app: "refund-data-service"
+  name: "refund-data-service-ingress"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  rules:
+  - host: "ballerina.gateway.com"
+    http:
+      paths:
+      - backend:
+          serviceName: "utility"
+          servicePort: 8280
+        path: "/"
+  tls: []

@@ -1,11 +1,34 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/mysql;
+import ballerinax/docker;
 
+@docker:Expose{}
 endpoint http:Listener refundListener {
     port: 8280
 };
 
+@docker:CopyFiles {
+    files: [
+        { 
+            source: "./refund-data-service/ballerina.conf", 
+            target: "/home/ballerina/ballerina.conf", 
+            isBallerinaConf: true 
+        },
+        { 
+            source: "$env{BALLERINA_HOME}/bre/lib/mysql-connector-java-5.1.45-bin.jar", 
+            target: "/ballerina/runtime/bre/lib/mysql-connector-java-5.1.45-bin.jar"
+        }
+    ]
+}
+@docker:Config {
+    push:true,
+    registry:"index.docker.io/$env{DOCKER_USERNAME}",
+    name:"refund-data-service",
+    tag:"0.1.0",
+    username:"$env{DOCKER_USERNAME}",
+    password:"$env{DOCKER_PASSWORD}"
+}
 @http:ServiceConfig {
     basePath: "/refund"
 }
