@@ -33,7 +33,7 @@ service<http:Service> refundAPI bind refundListener {
         body: "refunds"
     }
     addRefunds (endpoint outboundEp, http:Request req, Refunds refunds) {
-        http:Response res = addRefunds(req, refunds);
+        http:Response res = addRefunds(req, untaint refunds);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 
