@@ -18,7 +18,6 @@ endpoint mysql:Client refundDB {
 
 public function addRefund (http:Request req, Refund refund) returns http:Response {
 
-    http:Response res = new;
     string sqlString =
     "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID, CREDIT_MEMO_ID,COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG,
         RETRY_COUNT,ERROR_MESSAGE) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
@@ -34,7 +33,7 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
         match ret {
             int insertedRows => {
                 if (insertedRows < 1) {
-                    log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo + " failed", err = err);
+                    log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo + " failed", err = ());
                     isSuccessful = false;
                     abort;
                 } else {
@@ -50,21 +49,24 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
     }  
 
     json resJson;
+    int statusCode;
     if (isSuccessful) {
+        statusCode = 200;
         resJson = { "Status": "Refund is inserted to the staging database for order : " + refund.orderNo };
     } else {
+        statusCode = 500;
         resJson = { "Status": "Failed to insert refund to the staging database for order : " + refund.orderNo };
     }
     
+    http:Response res = new;
     res.setJsonPayload(resJson);
+    res.statusCode = statusCode;
     return res;
 }
 
 public function addRefunds (http:Request req, Refunds refunds)
                     returns http:Response {
 
-    http:Response res = new;
-    boolean isSuccessful;
     string uniqueString;
     invoiceBatchType[][] refundBatches;
     foreach i, refund in refunds.refunds {
@@ -80,6 +82,7 @@ public function addRefunds (http:Request req, Refunds refunds)
 
     log:printInfo("Calling refundDB->batchUpdate for OrderNo=" + uniqueString);
 
+    boolean isSuccessful;
     transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {  
         var retBatch = refundDB->batchUpdate(sqlString, ...refundBatches); 
         io:println(retBatch);
@@ -104,13 +107,18 @@ public function addRefunds (http:Request req, Refunds refunds)
     }        
 
     json resJson;
+    int statusCode;
     if (isSuccessful) {
+        statusCode = 200;
         resJson = { "Status": "Refunds are inserted to the staging database for order : " + uniqueString};
     } else {
+        statusCode = 500;
         resJson = { "Status": "Failed to insert refunds to the staging database for order : " + uniqueString };
     }
 
+    http:Response res = new;
     res.setJsonPayload(resJson);
+    res.statusCode = statusCode;
     return res;
 }
 
@@ -138,16 +146,18 @@ public function updateProcessFlag (http:Request req, int tid, Refund refund)
         }        
     }     
 
-    http:Response res = new;
+    int statusCode;
     if (isSuccessful) {
         resJson = { "Status": "ProcessFlag is updated for order : " + tid };
-        res.statusCode = 202;
+        statusCode = 202;
     } else {
         resJson = { "Status": "Failed to update ProcessFlag for order : " + tid };
-        res.statusCode = 400;
+        statusCode = 500;
     }
 
+    http:Response res = new;
     res.setJsonPayload(resJson);
+    res.statusCode = statusCode;
     return res;
 }
 
