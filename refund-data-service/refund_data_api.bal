@@ -58,7 +58,7 @@ service<http:Service> refundAPI bind refundListener {
         methods:["GET"],
         path: "/"
     }
-    getAllRefunds (endpoint outboundEp, http:Request req) {
+    getRefunds (endpoint outboundEp, http:Request req) {
         http:Response res = getRefunds(untaint req);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }

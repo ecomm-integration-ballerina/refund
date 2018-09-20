@@ -164,31 +164,31 @@ public function updateProcessFlag (http:Request req, int tid, Refund refund)
 public function getRefunds (http:Request req)
                     returns http:Response {
 
-    string baseSql = "SELECT * FROM refund";
+    int retryCount = config:getAsInt("refund.data.service.default.retryCount");
+    int resultsLimit = config:getAsInt("refund.data.service.default.resultsLimit");
+    string processFlag = config:getAsString("refund.data.service.default.processFlag");
 
     map<string> params = req.getQueryParams();
 
     if (params.hasKey("processFlag")) {
-        baseSql = baseSql + " where PROCESS_FLAG in (" + params.processFlag + ")";
+        processFlag = params.processFlag;
     }
 
     if (params.hasKey("maxRetryCount")) {
         match <int> params.maxRetryCount {
             int n => {
-                baseSql = baseSql + " and RETRY_COUNT <= " + n;
+                retryCount = n;
             }
             error err => {
                 throw err;
             }
         }
     }
-
-    baseSql = baseSql + " order by TRANSACTION_ID asc";
 
     if (params.hasKey("maxRecords")) {
         match <int> params.maxRecords {
             int n => {
-                baseSql = baseSql + " limit " + n;
+                resultsLimit = n;
             }
             error err => {
                 throw err;
@@ -196,21 +196,21 @@ public function getRefunds (http:Request req)
         }
     }
 
-    io:println(baseSql);
+    string sqlString = "select * from refund where PROCESS_FLAG in ( ? ) 
+        and RETRY_COUNT <= ? order by TRANSACTION_ID asc limit ?";
 
-    var ret = refundDB->select(baseSql, ());
-
+    var ret = refundDB->select(sqlString, (), processFlag, retryCount, resultsLimit);
+    io:println(ret);
     json jsonReturnValue;
     match ret {
         table dataTable => {
-            jsonReturnValue = check <json>dataTable;
+            jsonReturnValue = check <json> dataTable;
         }
         error err => {
             jsonReturnValue = { "Status": "Data Not Found", "Error": err.message };
         }
     }
 
-    io:println(jsonReturnValue);
     http:Response res = new;
     res.setJsonPayload(untaint jsonReturnValue);
 
