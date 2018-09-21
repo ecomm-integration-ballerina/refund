@@ -18,9 +18,9 @@ endpoint mysql:Client refundDB {
 
 public function addRefund (http:Request req, Refund refund) returns http:Response {
 
-    string sqlString =
-    "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID, CREDIT_MEMO_ID,COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG,
-        RETRY_COUNT,ERROR_MESSAGE) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+    string sqlString = "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID,
+        CREDIT_MEMO_ID,COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG,RETRY_COUNT,
+        ERROR_MESSAGE) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
     log:printInfo("Calling refundDB->insert for OrderNo=" + refund.orderNo);
 
@@ -122,25 +122,28 @@ public function addRefunds (http:Request req, Refunds refunds)
     return res;
 }
 
-public function updateProcessFlag (http:Request req, int tid, Refund refund)
+public function updateProcessFlag (http:Request req, Refund refund)
                     returns http:Response {
 
-    log:printInfo("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo);
+    log:printInfo("Calling refundDB->updateProcessFlag for TID=" + refund.transactionId + 
+                    ", OrderNo=" + refund.orderNo);
     string sqlString = "UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?";
 
     json resJson;
     boolean isSuccessful;
     transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
 
-        var ret = refundDB->update(sqlString, refund.processFlag, refund.retryCount, tid);
+        var ret = refundDB->update(sqlString, refund.processFlag, refund.retryCount, refund.transactionId);
 
         match ret {
             int insertedRows => {
-                log:printInfo("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo + " succeeded");
+                log:printInfo("Calling refundDB->updateProcessFlag for TID=" + refund.transactionId + 
+                                ", OrderNo=" + refund.orderNo + " succeeded");
                 isSuccessful = true;
             }
             error err => {
-                log:printError("Calling refundDB->updateProcessFlag for TID=" + tid + ", OrderNo=" + refund.orderNo + " failed", err = err);
+                log:printError("Calling refundDB->updateProcessFlag for TID=" + refund.transactionId + 
+                                ", OrderNo=" + refund.orderNo + " failed", err = err);
                 retry;
             }
         }        
@@ -148,10 +151,10 @@ public function updateProcessFlag (http:Request req, int tid, Refund refund)
 
     int statusCode;
     if (isSuccessful) {
-        resJson = { "Status": "ProcessFlag is updated for order : " + tid };
+        resJson = { "Status": "ProcessFlag is updated for order : " + refund.transactionId };
         statusCode = 202;
     } else {
-        resJson = { "Status": "Failed to update ProcessFlag for order : " + tid };
+        resJson = { "Status": "Failed to update ProcessFlag for order : " + refund.transactionId };
         statusCode = 500;
     }
 

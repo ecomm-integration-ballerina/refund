@@ -65,11 +65,11 @@ service<http:Service> refundAPI bind refundListener {
 
     @http:ResourceConfig {
         methods:["PUT"],
-        path: "/process-flag/{tid}",
+        path: "/process-flag/",
         body: "refund"
     }
-    updateProcessFlag (endpoint outboundEp, http:Request req, int tid, Refund refund) {
-        http:Response res = updateProcessFlag(req, untaint tid, refund);
+    updateProcessFlag (endpoint outboundEp, http:Request req, Refund refund) {
+        http:Response res = updateProcessFlag(req, untaint refund);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 
