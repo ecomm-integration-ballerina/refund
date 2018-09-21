@@ -95,7 +95,7 @@ function handleRefund(string path) returns boolean {
 function generateRefundsJson(xml refundXml) returns json {
 
     json refunds;
-    foreach i, x in refundXml.selectDescendants("ZECOMMINVOICE") {
+        
         json refundJson = {
             "orderNo" : x.selectDescendants("ZBLCORD").getTextValue(),
             "invoiceId" : x.selectDescendants("VBELN").getTextValue(),

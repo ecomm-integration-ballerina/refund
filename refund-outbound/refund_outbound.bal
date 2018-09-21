@@ -41,7 +41,7 @@ function doRefundETL() returns  error? {
 
     log:printInfo("Calling refundDataServiceEndpoint to fetch refunds");
 
-    var response = refundDataServiceEndpoint->get("?processFlag='N','E'&maxRecords=" + maxRecords
+    var response = refundDataServiceEndpoint->get("?maxRecords=" + maxRecords
             + "&maxRetryCount=" + maxRetryCount);
 
     json refunds;
@@ -61,8 +61,14 @@ function doRefundETL() returns  error? {
         }
     }
 
-    log:printInfo("Got response from refundDataServiceEndpoint to fetch refunds" + refunds.toString());
+    // terminate the flow if no refunds found
+    json[] refundsArray = check <json[]> refunds;
+    if (lengthof refundsArray == 0) {
+        return;
+    }
 
+    batchUpdateProcessFlagsToP(refunds);
+    
     http:Request req = new;
     foreach refund in refunds {
 
@@ -144,6 +150,34 @@ function handleError(error e) {
     log:printError("Error in processing refunds to ecomm-frontend", err = e);
     // I don't want to stop the ETL if backend is down
     // timer.stop();
+}
+
+function batchUpdateProcessFlagsToP (json refunds) {
+
+    json[] refundsArray = check <json[]> refunds;
+    json batchUpdateProcessFlagsPayload;
+    foreach i, refund in refundsArray {
+        json updateProcessFlagPayload = {
+            "transactionId": refund.TRANSACTION_ID,
+            "retryCount": refund.RETRY_COUNT,
+            "processFlag": "P"           
+        };
+        batchUpdateProcessFlagsPayload.refunds[i] = updateProcessFlagPayload;
+    }
+
+    http:Request req = new;
+    req.setJsonPayload(untaint batchUpdateProcessFlagsPayload);
+
+    var response = refundDataServiceEndpoint->put("/process-flag/batch/", req);
+
+    match response {
+        http:Response resp => {
+            // ignore
+        }
+        error err => {
+            log:printError("Error while calling refundDataServiceEndpoint.batchUpdateProcessFlags", err = err);
+        }
+    }
 }
 
 function updateProcessFlag(int tid, int retryCount, string processFlag, string errorMessage) {
