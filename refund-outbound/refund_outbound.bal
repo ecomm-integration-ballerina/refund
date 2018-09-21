@@ -44,31 +44,39 @@ function doRefundETL() returns  error? {
     var response = refundDataServiceEndpoint->get("?maxRecords=" + maxRecords
             + "&maxRetryCount=" + maxRetryCount);
 
-    json refunds;
     match response {
         http:Response resp => {
             match resp.getJsonPayload() {
-                json j => {refunds = j;}
+                json refunds => {
+                    // terminate the flow if no refunds found
+                    json[] refundsArray = check <json[]> refunds;
+                    if (lengthof refundsArray == 0) {
+                        return;
+                    }
+                    // update process flag to P in DB so that next ETL won't fetch these again
+                    batchUpdateProcessFlagsToP(refunds);
+                    // send refunds to Ecomm Frontend
+                    processRefundsToEcommFrontend(refunds);
+                }
                 error err => {
-                    log:printError("Response from refundDataEndpoint is not a json : " + err.message, err = err);
+                    log:printError("Response from refundDataEndpoint is not a json : " + 
+                                    err.message, err = err);
                     throw err;
                 }
             }
         }
         error err => {
-            log:printError("Error while calling refundDataEndpoint : " + err.message, err = err);
+            log:printError("Error while calling refundDataEndpoint : " + 
+                            err.message, err = err);
             throw err;
         }
     }
 
-    // terminate the flow if no refunds found
-    json[] refundsArray = check <json[]> refunds;
-    if (lengthof refundsArray == 0) {
-        return;
-    }
+    return ();
+}
 
-    batchUpdateProcessFlagsToP(refunds);
-    
+function processRefundsToEcommFrontend (json refunds) {
+
     http:Request req = new;
     foreach refund in refunds {
 
@@ -86,7 +94,7 @@ function doRefundETL() returns  error? {
         log:printInfo("Calling ecomm-frontend to process refund for : " + orderNo + 
                         ". Payload : " + jsonPayload.toString());
 
-        response = ecommFrontendAPIEndpoint->post("/" + untaint orderNo + "/capture/async", req);
+        var response = ecommFrontendAPIEndpoint->post("/" + untaint orderNo + "/capture/async", req);
 
         match response {
             http:Response resp => {
@@ -116,8 +124,6 @@ function doRefundETL() returns  error? {
             }
         }
     }
-
-    return ();
 }
 
 function getRefundPayload(json refund) returns (json) {
