@@ -28,6 +28,8 @@ function main(string... args) {
 
     function(error) onErrorFunction = handleError;
 
+    log:printInfo("Starting refunds ETL");
+
     timer = new task:Timer(onTriggerFunction, onErrorFunction,
         interval, delay = delay);
 
@@ -37,7 +39,6 @@ function main(string... args) {
 
 function doRefundETL() returns  error? {
 
-    log:printInfo("Starting refunds ETL");
     log:printInfo("Calling refundDataServiceEndpoint to fetch refunds");
 
     var response = refundDataServiceEndpoint->get("?processFlag='N','E'&maxRecords=" + maxRecords
@@ -59,6 +60,8 @@ function doRefundETL() returns  error? {
             throw err;
         }
     }
+
+    log:printInfo("Got response from refundDataServiceEndpoint to fetch refunds" + refunds.toString());
 
     http:Request req = new;
     foreach refund in refunds {

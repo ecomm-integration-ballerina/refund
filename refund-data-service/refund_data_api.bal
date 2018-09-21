@@ -73,4 +73,13 @@ service<http:Service> refundAPI bind refundListener {
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 
+    @http:ResourceConfig {
+        methods:["PUT"],
+        path: "/process-flag/batch/",
+        body: "refunds"
+    }
+    batchUpdateProcessFlag (endpoint outboundEp, http:Request req, Refunds refunds) {
+        http:Response res = batchUpdateProcessFlag(req, refunds);
+        outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
+    }
 }

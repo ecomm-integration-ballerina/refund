@@ -4,7 +4,7 @@ import ballerina/config;
 import ballerina/log;
 import ballerina/sql;
 
-type invoiceBatchType string|int|float;
+type refundBatchType string|int|float;
 
 endpoint mysql:Client refundDB {
     host: config:getAsString("refund.db.host"),
@@ -68,9 +68,9 @@ public function addRefunds (http:Request req, Refunds refunds)
                     returns http:Response {
 
     string uniqueString;
-    invoiceBatchType[][] refundBatches;
+    refundBatchType[][] refundBatches;
     foreach i, refund in refunds.refunds {
-        invoiceBatchType[] ref = [refund.orderNo, refund.kind, refund.invoiceId, refund.settlementId, 
+        refundBatchType[] ref = [refund.orderNo, refund.kind, refund.invoiceId, refund.settlementId, 
                 refund.creditMemoId, refund.countryCode, refund.itemIds, refund.request, refund.processFlag, 
                 refund.retryCount, refund.errorMessage];
         refundBatches[i] = ref;
@@ -152,6 +152,60 @@ public function updateProcessFlag (http:Request req, int tid, Refund refund)
         statusCode = 202;
     } else {
         resJson = { "Status": "Failed to update ProcessFlag for order : " + tid };
+        statusCode = 500;
+    }
+
+    http:Response res = new;
+    res.setJsonPayload(resJson);
+    res.statusCode = statusCode;
+    return res;
+}
+
+public function batchUpdateProcessFlag (http:Request req, Refunds refunds)
+                    returns http:Response {
+
+    refundBatchType[][] refundBatches;
+    foreach i, refund in refunds.refunds {
+        refundBatchType[] ref = [refund.processFlag, refund.retryCount, refund.transactionId];
+        refundBatches[i] = ref;
+    }
+    
+    string sqlString = "UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?";
+
+    log:printInfo("Calling refundDB->batchUpdateProcessFlag");
+    
+    json resJson;
+    boolean isSuccessful;
+    transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
+
+        var retBatch = refundDB->batchUpdate(sqlString, ... refundBatches);
+
+        match retBatch {
+            int[] counts => {
+                foreach count in counts {
+                    if (count < 1) {
+                        log:printError("Calling refundDB->batchUpdateProcessFlag failed", err = ());
+                        isSuccessful = false;
+                        abort;
+                    } else {
+                        log:printInfo("Calling refundDB->batchUpdateProcessFlag succeeded");
+                        isSuccessful = true;
+                    }
+                }
+            }
+            error err => {
+                log:printError("Calling refundDB->batchUpdateProcessFlag failed", err = err);
+                retry;
+            }
+        }      
+    }     
+
+    int statusCode;
+    if (isSuccessful) {
+        resJson = { "Status": "ProcessFlags updated"};
+        statusCode = 202;
+    } else {
+        resJson = { "Status": "ProcessFlags not updated" };
         statusCode = 500;
     }
 
