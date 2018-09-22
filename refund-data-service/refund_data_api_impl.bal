@@ -18,9 +18,9 @@ endpoint mysql:Client refundDB {
 
 public function addRefund (http:Request req, Refund refund) returns http:Response {
 
-    string sqlString = "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID,
-        CREDIT_MEMO_ID,COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG,RETRY_COUNT,
-        ERROR_MESSAGE) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+    string sqlString = "INSERT INTO refund(orderNo,kind,invoiceId,settlementId,
+        creditMemoId,countryCode,itemIds,request,processFlag,retryCount, errorMessage) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
     log:printInfo("Calling refundDB->insert for OrderNo=" + refund.orderNo);
 
@@ -77,8 +77,8 @@ public function addRefunds (http:Request req, Refunds refunds)
         uniqueString = uniqueString + "," + refund.orderNo;        
     }
     
-    string sqlString = "INSERT INTO refund(ORDER_NO,TYPE,INVOICE_ID,SETTLEMENT_ID, CREDIT_MEMO_ID,
-        COUNTRY_CODE,ITEM_IDS,REQUEST,PROCESS_FLAG, RETRY_COUNT,ERROR_MESSAGE) VALUES (?,?,?,?,?,?,?,?,?,?,?)"; 
+    string sqlString = "INSERT INTO refund(orderNo,kind,invoiceId,settlementId,creditMemoId,
+        countryCode,itemIds,request,processFlag,retryCount,errorMessage) VALUES (?,?,?,?,?,?,?,?,?,?,?)"; 
 
     log:printInfo("Calling refundDB->batchUpdate for OrderNo=" + uniqueString);
 
@@ -127,7 +127,7 @@ public function updateProcessFlag (http:Request req, Refund refund)
 
     log:printInfo("Calling refundDB->updateProcessFlag for TID=" + refund.transactionId + 
                     ", OrderNo=" + refund.orderNo);
-    string sqlString = "UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?";
+    string sqlString = "UPDATE refund SET processFlag = ?, retryCount = ? where transactionId = ?";
 
     json resJson;
     boolean isSuccessful;
@@ -173,7 +173,7 @@ public function batchUpdateProcessFlag (http:Request req, Refunds refunds)
         refundBatches[i] = ref;
     }
     
-    string sqlString = "UPDATE refund SET PROCESS_FLAG = ?, RETRY_COUNT = ? where TRANSACTION_ID = ?";
+    string sqlString = "UPDATE refund SET processFlag = ?, retryCount = ? where transactionId = ?";
 
     log:printInfo("Calling refundDB->batchUpdateProcessFlag");
     
@@ -253,25 +253,26 @@ public function getRefunds (http:Request req)
         }
     }
 
-    string sqlString = "select * from refund where PROCESS_FLAG in ( ? ) 
-        and RETRY_COUNT <= ? order by TRANSACTION_ID asc limit ?";
+    string sqlString = "select * from refund where processFlag in ( ? ) 
+        and retryCount <= ? order by transactionId asc limit ?";
 
-    var ret = refundDB->select(sqlString, (), processFlag, retryCount, resultsLimit);
-    io:println(ret);
+    var ret = refundDB->select(sqlString, Refund, processFlag, retryCount, resultsLimit);
+
+    http:Response resp = new;
     json jsonReturnValue;
     match ret {
-        table dataTable => {
-            jsonReturnValue = check <json> dataTable;
+        table tableReturned => {
+            jsonReturnValue = check <json> tableReturned;
+            resp.statusCode = 200;
         }
         error err => {
-            jsonReturnValue = { "Status": "Data Not Found", "Error": err.message };
+            jsonReturnValue = { "Status": "Internal Server Error", "Error": err.message };
+            resp.statusCode = 500;
         }
     }
 
-    http:Response res = new;
-    res.setJsonPayload(untaint jsonReturnValue);
-
-    return res;
+    resp.setJsonPayload(untaint jsonReturnValue);
+    return resp;
 }
 
 function onCommitFunction(string transactionId) {

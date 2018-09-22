@@ -9,8 +9,8 @@ endpoint http:Client refundDataServiceEndpoint {
     url: config:getAsString("refund.data.service.url")
 };
 
-endpoint http:Client ecommFrontendAPIEndpoint {
-    url: config:getAsString("ecomm-frontend.api.url")
+endpoint http:Client ecommFrontendRefundAPIEndpoint {
+    url: config:getAsString("ecomm-frontend.refund.url")
 };
 
 int count;
@@ -19,7 +19,7 @@ int interval = config:getAsInt("refund.outbound.task.interval");
 int delay = config:getAsInt("refund.outbound.task.delay");
 int maxRetryCount = config:getAsInt("refund.outbound.task.maxRetryCount");
 int maxRecords = config:getAsInt("refund.outbound.task.maxRecords");
-string apiKey = config:getAsString("ecomm-frontend.api.key");
+string apiKey = config:getAsString("ecomm-frontend.refund.key");
 
 
 function main(string... args) {
@@ -54,9 +54,11 @@ function doRefundETL() returns  error? {
                         return;
                     }
                     // update process flag to P in DB so that next ETL won't fetch these again
-                    batchUpdateProcessFlagsToP(refunds);
+                    boolean success = batchUpdateProcessFlagsToP(refunds);
                     // send refunds to Ecomm Frontend
-                    processRefundsToEcommFrontend(refunds);
+                    if (success) {
+                        processRefundsToEcommFrontend(refunds);
+                    }
                 }
                 error err => {
                     log:printError("Response from refundDataEndpoint is not a json : " + 
@@ -94,7 +96,7 @@ function processRefundsToEcommFrontend (json refunds) {
         log:printInfo("Calling ecomm-frontend to process refund for : " + orderNo + 
                         ". Payload : " + jsonPayload.toString());
 
-        var response = ecommFrontendAPIEndpoint->post("/" + untaint orderNo + "/capture/async", req);
+        var response = ecommFrontendRefundAPIEndpoint->post("/" + untaint orderNo + "/capture/async", req);
 
         match response {
             http:Response resp => {
@@ -128,16 +130,25 @@ function processRefundsToEcommFrontend (json refunds) {
 
 function getRefundPayload(json refund) returns (json) {
 
-    json refundPayload = {
-        "amount": refund.AMOUNT,
-        "totalAmount": refund.TOTAL_AMOUNT,
-        "currency": refund.CURRENCY,
-        "countryCode": refund.COUNTRY_CODE,
-        "refundId": refund.refund_ID,
-        "additionalProperties":{
-            "trackingNumber": refund.TRACKING_NUMBER
-        }
-    };
+    string kind = check <string> refund.TYPE;
+    json refundPayload ;
+    if (kind == "CREDITMEMO") {
+
+    } else if (kind == "REFUND") {
+
+    } else {
+        // default is CANCEL
+        refundPayload = {
+            "requestId": refund.in,
+            "invoiceId": refund.TOTAL_AMOUNT,
+            "type": refund.CURRENCY,
+            "currency": refund.COUNTRY_CODE,
+            "countryCode": refund.refund_ID,
+            "comments": ,
+            "amount": ,
+            "itemIds":
+        };
+    }
 
     if (<string>refund["SETTLEMENT_ID"] != "") {
         refundPayload["settlementId"] = refund.SETTLEMENT_ID;
@@ -158,7 +169,7 @@ function handleError(error e) {
     // timer.stop();
 }
 
-function batchUpdateProcessFlagsToP (json refunds) {
+function batchUpdateProcessFlagsToP (json refunds) returns boolean{
 
     json[] refundsArray = check <json[]> refunds;
     json batchUpdateProcessFlagsPayload;
@@ -176,14 +187,19 @@ function batchUpdateProcessFlagsToP (json refunds) {
 
     var response = refundDataServiceEndpoint->put("/process-flag/batch/", req);
 
+    boolean success;
     match response {
         http:Response resp => {
-            // ignore
+            if (res.statusCode == 202) {
+                success = true;
+            }
         }
         error err => {
             log:printError("Error while calling refundDataServiceEndpoint.batchUpdateProcessFlags", err = err);
         }
     }
+
+    return success;
 }
 
 function updateProcessFlag(int tid, int retryCount, string processFlag, string errorMessage) {
