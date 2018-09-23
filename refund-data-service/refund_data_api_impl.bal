@@ -54,11 +54,11 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
     json resJson;
     int statusCode;
     if (isSuccessful) {
-        statusCode = 200;
+        statusCode = http:OK_200;
         resJson = { "Status": "Refund is inserted to the staging database for order : " 
                     + refund.orderNo };
     } else {
-        statusCode = 500;
+        statusCode = http:INTERNAL_SERVER_ERROR_500;
         resJson = { "Status": "Failed to insert refund to the staging database for order : " 
                     + refund.orderNo };
     }
@@ -116,11 +116,11 @@ public function addRefunds (http:Request req, Refunds refunds)
     json resJson;
     int statusCode;
     if (isSuccessful) {
-        statusCode = 200;
+        statusCode = http:OK_200;
         resJson = { "Status": "Refunds are inserted to the staging database for order : " 
             + uniqueString};
     } else {
-        statusCode = 500;
+        statusCode = http:INTERNAL_SERVER_ERROR_500;
         resJson = { "Status": "Failed to insert refunds to the staging database for order : " 
             + uniqueString };
     }
@@ -163,10 +163,10 @@ public function updateProcessFlag (http:Request req, Refund refund)
     int statusCode;
     if (isSuccessful) {
         resJson = { "Status": "ProcessFlag is updated for order : " + refund.transactionId };
-        statusCode = 202;
+        statusCode = http:ACCEPTED_202;
     } else {
         resJson = { "Status": "Failed to update ProcessFlag for order : " + refund.transactionId };
-        statusCode = 500;
+        statusCode = http:INTERNAL_SERVER_ERROR_500;
     }
 
     http:Response res = new;
@@ -217,10 +217,10 @@ public function batchUpdateProcessFlag (http:Request req, Refunds refunds)
     int statusCode;
     if (isSuccessful) {
         resJson = { "Status": "ProcessFlags updated"};
-        statusCode = 202;
+        statusCode = http:ACCEPTED_202;
     } else {
         resJson = { "Status": "ProcessFlags not updated" };
-        statusCode = 500;
+        statusCode = http:INTERNAL_SERVER_ERROR_500;
     }
 
     http:Response res = new;
@@ -277,11 +277,11 @@ public function getRefunds (http:Request req)
     match ret {
         table tableReturned => {
             jsonReturnValue = check <json> tableReturned;
-            resp.statusCode = 200;
+            resp.statusCode = http:OK_200;
         }
         error err => {
             jsonReturnValue = { "Status": "Internal Server Error", "Error": err.message };
-            resp.statusCode = 500;
+            resp.statusCode = http:INTERNAL_SERVER_ERROR_500;
         }
     }
 
