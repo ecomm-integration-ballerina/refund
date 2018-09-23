@@ -69,7 +69,11 @@ service<http:Service> refundAPI bind refundListener {
         body: "refund"
     }
     updateProcessFlag (endpoint outboundEp, http:Request req, Refund refund) {
+        io:println("//////////////");
+        io:println(refund);
         http:Response res = updateProcessFlag(req, untaint refund);
+        io:println("2222222222");
+        io:println(res);
         outboundEp->respond(res) but { error e => log:printError("Error while responding", err = e) };
     }
 

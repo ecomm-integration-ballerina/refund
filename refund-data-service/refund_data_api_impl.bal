@@ -127,13 +127,15 @@ public function updateProcessFlag (http:Request req, Refund refund)
 
     log:printInfo("Calling refundDB->updateProcessFlag for TID=" + refund.transactionId + 
                     ", OrderNo=" + refund.orderNo);
-    string sqlString = "UPDATE refund SET processFlag = ?, retryCount = ? where transactionId = ?";
+    string sqlString = "UPDATE refund SET processFlag = ?, retryCount = ?, errorMessage = ? 
+                            where transactionId = ?";
 
     json resJson;
     boolean isSuccessful;
     transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
 
-        var ret = refundDB->update(sqlString, refund.processFlag, refund.retryCount, refund.transactionId);
+        var ret = refundDB->update(sqlString, refund.processFlag, refund.retryCount, 
+                                    refund.errorMessage, refund.transactionId);
 
         match ret {
             int insertedRows => {
@@ -256,17 +258,22 @@ public function getRefunds (http:Request req)
     string sqlString = "select * from refund where processFlag in ( ? ) 
         and retryCount <= ? order by transactionId asc limit ?";
 
-    var ret = refundDB->select(sqlString, Refund, processFlag, retryCount, resultsLimit);
+    string[] processFlagArray = processFlag.split(",");
+    sql:Parameter processFlagPara = { sqlType: sql:TYPE_VARCHAR, value: processFlagArray };
+
+    var ret = refundDB->select(sqlString, Refund, processFlagPara, retryCount, resultsLimit);
 
     http:Response resp = new;
     json jsonReturnValue;
     match ret {
         table tableReturned => {
             jsonReturnValue = check <json> tableReturned;
+            io:println(jsonReturnValue);
             resp.statusCode = 200;
         }
         error err => {
             jsonReturnValue = { "Status": "Internal Server Error", "Error": err.message };
+             io:println(jsonReturnValue);
             resp.statusCode = 500;
         }
     }

@@ -11,7 +11,7 @@ CREATE TABLE `refund` (
   `processFlag` varchar(100) DEFAULT NULL,
   `retryCount` int(11) DEFAULT NULL,
   `errorMessage` varchar(4000) DEFAULT NULL,
-  `createdTime` timestamp NULL DEFAULT NULL,
-  `lastUpdatedTime` timestamp NULL DEFAULT NULL,
+  `createdTime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastUpdatedTime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`transactionId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=latin1

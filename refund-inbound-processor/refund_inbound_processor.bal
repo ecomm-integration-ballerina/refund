@@ -30,7 +30,7 @@ endpoint mb:SimpleQueueReceiver refundInboundQueue {
 service<mb:Consumer> refundInboundQueueReceiver bind refundInboundQueue {
 
     onMessage(endpoint consumer, mb:Message message) {
-        match (message.getTextMessageContent()) {
+        match (message.getTextMessageContent()) {           
             string path => {
                 log:printInfo("New refund received from refundInboundQueue : " + path);
                 boolean success = handleRefund(path);
