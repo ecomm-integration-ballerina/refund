@@ -27,13 +27,15 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
     boolean isSuccessful;
     transaction with retries = 5, oncommit = onCommitFunction, onabort = onAbortFunction {                              
 
-        var ret = refundDB->update(sqlString, refund.orderNo, refund.kind, refund.invoiceId, refund.settlementId, refund.creditMemoId, refund.countryCode, 
-        refund.itemIds, refund.request, refund.processFlag, refund.retryCount, refund.errorMessage);
+        var ret = refundDB->update(sqlString, refund.orderNo, refund.kind, refund.invoiceId, 
+            refund.settlementId, refund.creditMemoId, refund.countryCode, refund.itemIds, 
+            refund.request, refund.processFlag, refund.retryCount, refund.errorMessage);
 
         match ret {
             int insertedRows => {
                 if (insertedRows < 1) {
-                    log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo + " failed", err = ());
+                    log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo 
+                        + " failed", err = ());
                     isSuccessful = false;
                     abort;
                 } else {
@@ -42,7 +44,8 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
                 }
             }
             error err => {
-                log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo + " failed", err = err);
+                log:printError("Calling refundDB->insert for OrderNo=" + refund.orderNo 
+                    + " failed", err = err);
                 retry;
             }
         }        
@@ -52,10 +55,12 @@ public function addRefund (http:Request req, Refund refund) returns http:Respons
     int statusCode;
     if (isSuccessful) {
         statusCode = 200;
-        resJson = { "Status": "Refund is inserted to the staging database for order : " + refund.orderNo };
+        resJson = { "Status": "Refund is inserted to the staging database for order : " 
+                    + refund.orderNo };
     } else {
         statusCode = 500;
-        resJson = { "Status": "Failed to insert refund to the staging database for order : " + refund.orderNo };
+        resJson = { "Status": "Failed to insert refund to the staging database for order : " 
+                    + refund.orderNo };
     }
     
     http:Response res = new;
@@ -90,7 +95,8 @@ public function addRefunds (http:Request req, Refunds refunds)
             int[] counts => {
                 foreach count in counts {
                     if (count < 1) {
-                        log:printError("Calling refundDB->batchUpdate for OrderNo=" + uniqueString + " failed", err = ());
+                        log:printError("Calling refundDB->batchUpdate for OrderNo=" + uniqueString 
+                            + " failed", err = ());
                         isSuccessful = false;
                         abort;
                     } else {
@@ -100,7 +106,8 @@ public function addRefunds (http:Request req, Refunds refunds)
                 }
             }
             error err => {
-                log:printError("Calling refundDB->batchUpdate for OrderNo=" + uniqueString + " failed", err = err);
+                log:printError("Calling refundDB->batchUpdate for OrderNo=" + uniqueString 
+                    + " failed", err = err);
                 retry;
             }
         }
@@ -110,10 +117,12 @@ public function addRefunds (http:Request req, Refunds refunds)
     int statusCode;
     if (isSuccessful) {
         statusCode = 200;
-        resJson = { "Status": "Refunds are inserted to the staging database for order : " + uniqueString};
+        resJson = { "Status": "Refunds are inserted to the staging database for order : " 
+            + uniqueString};
     } else {
         statusCode = 500;
-        resJson = { "Status": "Failed to insert refunds to the staging database for order : " + uniqueString };
+        resJson = { "Status": "Failed to insert refunds to the staging database for order : " 
+            + uniqueString };
     }
 
     http:Response res = new;
@@ -268,12 +277,10 @@ public function getRefunds (http:Request req)
     match ret {
         table tableReturned => {
             jsonReturnValue = check <json> tableReturned;
-            io:println(jsonReturnValue);
             resp.statusCode = 200;
         }
         error err => {
             jsonReturnValue = { "Status": "Internal Server Error", "Error": err.message };
-             io:println(jsonReturnValue);
             resp.statusCode = 500;
         }
     }

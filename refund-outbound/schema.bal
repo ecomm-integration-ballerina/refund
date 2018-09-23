@@ -14,7 +14,3 @@ public type Refund record {
     string createdTime,
     string lastUpdatedTime,
 };
-
-public type Refunds record {
-    Refund[] refunds,
-};
