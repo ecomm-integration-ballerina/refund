@@ -92,7 +92,7 @@ function processRefundsToEcommFrontend (Refund[] refunds) {
         req.setJsonPayload(jsonPayload);
         req.setHeader("api-key", apiKey);
         string contextId = "ECOMM_" + refund.countryCode;
-        req.setHeader("Context-Id", contextId);
+        req.setHeader("Context-Id", "ECOMM_US");
 
         log:printInfo("Calling ecomm-frontend to process refund for : " + orderNo + 
                         ". Payload : " + jsonPayload.toString());
@@ -214,12 +214,7 @@ function updateProcessFlag(int tid, int retryCount, string processFlag, string e
     http:Request req = new;
     req.setJsonPayload(untaint updaterefund);
 
-    io:println(updaterefund);
-    io:println(tid);
-
     var response = refundDataServiceEndpoint->put("/process-flag/", req);
-
-    io:println(response);
 
     match response {
         http:Response resp => {
