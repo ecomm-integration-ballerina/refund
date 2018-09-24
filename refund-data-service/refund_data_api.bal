@@ -11,7 +11,7 @@ endpoint http:Listener refundListener {
 @docker:CopyFiles {
     files: [
         { 
-            source: "./refund-data-service/ballerina.conf", 
+            source: "./refund-data-service/conf/ballerina.conf", 
             target: "/home/ballerina/ballerina.conf", 
             isBallerinaConf: true 
         },
@@ -25,7 +25,7 @@ endpoint http:Listener refundListener {
     push:true,
     registry:"index.docker.io/$env{DOCKER_USERNAME}",
     name:"refund-data-service",
-    tag:"0.1.2",
+    tag:"0.1.0",
     username:"$env{DOCKER_USERNAME}",
     password:"$env{DOCKER_PASSWORD}"
 }

@@ -6,15 +6,15 @@ import ballerina/log;
 
 endpoint ftp:Listener refundSFTPListener {
     protocol: ftp:SFTP,
-    host: config:getAsString("ecomm-backend.refund.sftp.host"),
-    port: config:getAsInt("ecomm-backend.refund.sftp.port"),
+    host: config:getAsString("ecomm_backend.refund.sftp.host"),
+    port: config:getAsInt("ecomm_backend.refund.sftp.port"),
     secureSocket: {
         basicAuth: {
-            username: config:getAsString("ecomm-backend.refund.sftp.username"),
-            password: config:getAsString("ecomm-backend.refund.sftp.password")
+            username: config:getAsString("ecomm_backend.refund.sftp.username"),
+            password: config:getAsString("ecomm_backend.refund.sftp.password")
         }
     },
-    path:config:getAsString("ecomm-backend.refund.sftp.path") + "/original"
+    path:config:getAsString("ecomm_backend.refund.sftp.path") + "/original"
 };
 
 endpoint mb:SimpleQueueSender refundInboundQueue {
