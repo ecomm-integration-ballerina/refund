@@ -25,7 +25,7 @@ endpoint http:Listener refundListener {
     push:true,
     registry:"index.docker.io/$env{DOCKER_USERNAME}",
     name:"refund-data-service",
-    tag:"0.1.0",
+    tag:"0.1.2",
     username:"$env{DOCKER_USERNAME}",
     password:"$env{DOCKER_PASSWORD}"
 }

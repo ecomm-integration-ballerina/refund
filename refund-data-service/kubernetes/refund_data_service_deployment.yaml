@@ -24,7 +24,7 @@ spec:
         command: []
         env: []
         envFrom: []
-        image: "rajkumar/refund-data-service:0.1.0"
+        image: "rajkumar/refund-data-service:0.1.2"
         imagePullPolicy: "IfNotPresent"
         name: "refund-data-service-deployment"
         ports:       

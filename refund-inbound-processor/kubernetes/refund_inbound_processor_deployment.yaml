@@ -5,8 +5,8 @@ metadata:
   annotations: {}
   finalizers: []
   labels:
-    app: "refund-inbound-dispatcher"
-  name: "refund-inbound-dispatcher-deployment"
+    app: "refund-inbound-processor"
+  name: "refund-inbound-processor-deployment"
   namespace: "default"
   ownerReferences: []
 spec:
@@ -16,21 +16,23 @@ spec:
       annotations: {}
       finalizers: []
       labels:
-        app: "refund-inbound-dispatcher"
+        app: "refund-inbound-processor"
       ownerReferences: []
     spec:
       containers:
       - args: []
         command: []
-        env:
+        env: 
           - name: refund.mb.host
             value: "b7a-mb-service.default.svc.cluster.local"
           - name: refund.mb.port
-            value: "5672"        
+            value: "5672"
+          - name: refund.api.url
+            value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"
         envFrom: []
-        image: "rajkumar/refund-inbound-dispatcher:0.1.0"
+        image: "rajkumar/refund-inbound-processor:0.1.2"
         imagePullPolicy: "IfNotPresent"
-        name: "refund-inbound-dispatcher-deployment"
+        name: "refund-inbound-processor-deployment"
         ports:        
         volumeMounts: []
       hostAliases: []

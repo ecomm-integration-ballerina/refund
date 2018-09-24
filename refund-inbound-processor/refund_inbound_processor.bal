@@ -52,15 +52,14 @@ function handleRefund(string path) returns boolean {
 
     boolean success = false;
     var refundOrError = refundSFTPClient -> get(path);
-
     match refundOrError {
 
         io:ByteChannel channel => {
             io:CharacterChannel characters = new(channel, "utf-8");
-            xml refund = check characters.readXml();
+            xml refundXml = check characters.readXml();
             _ = channel.close();
 
-            json refunds = generateRefundsJson(refund);
+            json refunds = generateRefundsJson(refundXml);
 
             http:Request req = new;
             req.setJsonPayload(untaint refunds);
@@ -95,22 +94,23 @@ function handleRefund(string path) returns boolean {
 function generateRefundsJson(xml refundXml) returns json {
 
     json refunds;
-        
+    foreach i, x in refundXml.selectDescendants("ZECOMMCREDITMEMO") { 
         json refundJson = {
             "orderNo" : x.selectDescendants("ZBLCORD").getTextValue(),
-            "invoiceId" : x.selectDescendants("VBELN").getTextValue(),
-            "settlementId" : x.selectDescendants("ZSETTID").getTextValue(),
-            "trackingNumber" : x.selectDescendants("TRACK_NUMBER").getTextValue(),
+            "kind" : x.selectDescendants("ZCMTYPE").getTextValue(),
+            "invoiceId" : x.selectDescendants("AUBEL").getTextValue(),
+            "settlementId" : x.selectDescendants("ZOSETTID").getTextValue(),
+            "creditMemoId" : x.selectDescendants("ZCMNO").getTextValue(),
             "itemIds" : x.selectDescendants("ZBLCITEM").getTextValue(),
             "countryCode" : x.selectDescendants("LAND1").getTextValue(),
-            "request" : x.selectDescendants("ZBLCORD").getTextValue(),
+            "request" : <string> x,
             "processFlag" : "N",
             "retryCount" : 0,
             "errorMessage":"None"
         };
         refunds.refunds[i] = refundJson;
     }
-
+    
     return refunds;
 }
 
