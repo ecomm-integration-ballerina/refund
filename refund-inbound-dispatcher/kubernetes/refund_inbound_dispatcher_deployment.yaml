@@ -1,0 +1,37 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "refund-inbound-dispatcher"
+  name: "refund-inbound-dispatcher-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "refund-inbound-dispatcher"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env: []
+        envFrom: []
+        image: "rajkumar/refund-inbound-dispatcher:0.1.0"
+        imagePullPolicy: "IfNotPresent"
+        name: "refund-inbound-dispatcher-deployment"
+        ports:        
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []
