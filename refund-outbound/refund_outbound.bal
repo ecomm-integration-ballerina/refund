@@ -131,35 +131,37 @@ function processRefundsToEcommFrontend (Refund[] refunds) {
 
 function getRefundPayload(Refund refund) returns (json) {
 
-    string kind = <string> refund.kind;
     json refundPayload ;
-    if (kind == "CREDITMEMO") {
-
-    } else if (kind == "REFUND") {
-
-    } else {
-        // default is CANCEL
-        // refundPayload = {
-        //     "requestId": refund.in,
-        //     "invoiceId": refund.TOTAL_AMOUNT,
-        //     "type": refund.CURRENCY,
-        //     "currency": refund.COUNTRY_CODE,
-        //     "countryCode": refund.refund_ID,
-        //     "comments": ,
-        //     "amount": ,
-        //     "itemIds":
-        // };
-    }
-
-    if (<string>refund["SETTLEMENT_ID"] != "") {
-        refundPayload["settlementId"] = refund.settlementId;
-    }
 
     // convert string 7,8,9 to json ["7","8","9"]
     string itemIds = refund.itemIds;
     string[] itemIdsArray = itemIds.split(",");
     json itemIdsJsonArray = check <json> itemIdsArray;
-    refundPayload["itemIds"] = itemIdsJsonArray;
+
+    // default is cancel payload
+    refundPayload = {
+        "type": "AUTH_CANCEL",
+        "invoiceId": refund.invoiceId,
+        "currency": refund.countryCode,
+        "countryCode": refund.countryCode,
+        "comments": refund.countryCode,
+        "amount": refund.countryCode,
+        "itemIds": itemIdsJsonArray
+    };
+
+    string kind = <string> refund.kind;
+    if (kind == "REFUND" || kind == "CREDITMEMO") {        
+        refundPayload["creditMemoId"] = refund.creditMemoId;
+        refundPayload["settlementId"] = refund.settlementId;
+        refundPayload["type"] = "REFUND";
+        refundPayload["totalAmount"] = refund.countryCode;
+
+        if (kind == "REFUND") {
+            refundPayload["requestId"] = refund.countryCode; // should be timestamp
+        } else {
+            refundPayload["requestId"] = refund.creditMemoId;
+        }
+    } 
 
     return refundPayload;
 }

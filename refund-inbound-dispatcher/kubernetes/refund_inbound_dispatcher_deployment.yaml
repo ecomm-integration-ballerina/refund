@@ -28,7 +28,7 @@ spec:
           - name: refund_mb_port
             value: "5672" 
           - name: ecomm_backend_refund_sftp_host
-            value: "192.168.153.97"
+            value: "refund-sftp-headless-service.default.svc.cluster.local"
           - name: ecomm_backend_refund_sftp_port
             value: "22"    
           - name: ecomm_backend_refund_sftp_username
@@ -38,7 +38,7 @@ spec:
           - name: ecomm_backend_refund_sftp_path
             value: "/Users/ecomm0xxx/projects/ecomm/sftp/refund"                                                               
         envFrom: []
-        image: "rajkumar/refund-inbound-dispatcher:0.4.0"
+        image: "rajkumar/refund-inbound-dispatcher:0.1.0"
         imagePullPolicy: "IfNotPresent"
         name: "refund-inbound-dispatcher-deployment"
         ports:        

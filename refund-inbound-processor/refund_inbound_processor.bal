@@ -7,12 +7,12 @@ import ballerina/http;
 
 endpoint ftp:Client refundSFTPClient {
     protocol: ftp:SFTP,
-    host: config:getAsString("ecomm-backend.refund.sftp.host"),
-    port: config:getAsInt("ecomm-backend.refund.sftp.port"),
+    host: config:getAsString("ecomm_backend.refund.sftp.host"),
+    port: config:getAsInt("ecomm_backend.refund.sftp.port"),
     secureSocket: {
         basicAuth: {
-            username: config:getAsString("ecomm-backend.refund.sftp.username"),
-            password: config:getAsString("ecomm-backend.refund.sftp.password")
+            username: config:getAsString("ecomm_backend.refund.sftp.username"),
+            password: config:getAsString("ecomm_backend.refund.sftp.password")
         }
     }
 };
@@ -115,13 +115,13 @@ function generateRefundsJson(xml refundXml) returns json {
 }
 
 function archiveCompletedRefund(string  path) {
-    string archivePath = config:getAsString("ecomm-backend.refund.sftp.path") + "/archive/" + getFileName(path);
+    string archivePath = config:getAsString("ecomm_backend.refund.sftp.path") + "/archive/" + getFileName(path);
     _ = refundSFTPClient -> rename(path, archivePath);
     io:println("Archived refund path : ", archivePath);
 }
 
 function archiveErroredRefund(string path) {
-    string erroredPath = config:getAsString("ecomm-backend.refund.sftp.path") + "/error/" + getFileName(path);
+    string erroredPath = config:getAsString("ecomm_backend.refund.sftp.path") + "/error/" + getFileName(path);
     _ = refundSFTPClient -> rename(path, erroredPath);
     io:println("Errored refund path : ", erroredPath);
 }

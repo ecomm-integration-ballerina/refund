@@ -23,14 +23,14 @@ spec:
       - args: []
         command: []
         env: 
-          - name: refund.mb.host
+          - name: refund_mb_host
             value: "b7a-mb-service.default.svc.cluster.local"
-          - name: refund.mb.port
+          - name: refund_mb_port
             value: "5672"
-          - name: refund.api.url
+          - name: refund_api_url
             value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"
         envFrom: []
-        image: "rajkumar/refund-inbound-processor:0.1.2"
+        image: "rajkumar/refund-inbound-processor:0.1.0"
         imagePullPolicy: "IfNotPresent"
         name: "refund-inbound-processor-deployment"
         ports:        
