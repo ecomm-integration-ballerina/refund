@@ -26,7 +26,21 @@ spec:
           - name: refund_mb_host
             value: "b7a-mb-service.default.svc.cluster.local"
           - name: refund_mb_port
-            value: "5672"
+            value: "5672" 
+          - name: ecomm_backend_refund_sftp_host
+            value: "refund-sftp-headless-service.default.svc.cluster.local"
+          - name: ecomm_backend_refund_sftp_port
+            value: "22"    
+          - name: ecomm_backend_refund_sftp_username
+            value: "ecomm0xxx" 
+          - name: ecomm_backend_refund_sftp_password
+            value: "ec0mmoxxx" 
+          - name: ecomm_backend_refund_sftp_path
+            value: "/Users/ecomm0xxx/projects/ecomm/sftp/refund" 
+          - name: ecomm_backend_refund_etl_interval
+            value: "10000" 
+          - name: ecomm_backend_refund_etl_initialDelay
+            value: "500"                         
           - name: refund_api_url
             value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"
         envFrom: []
