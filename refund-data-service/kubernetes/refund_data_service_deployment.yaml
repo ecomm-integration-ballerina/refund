@@ -22,20 +22,26 @@ spec:
       containers:
       - args: []
         command: []
-        env:
+        env:        
           - name: refund_db_host
             value: "staging-db-headless-service.default.svc.cluster.local"
           - name: refund_db_port
             value: "3306"    
           - name: refund_db_name
-            value: "ecomm_database" 
+            value: "WSO2_STAGING" 
           - name: refund_db_username
-            value: "admin" 
-          - name: password
-            value: "superadmin"           
+            valueFrom:
+              secretKeyRef:
+                name: staging-db-secret
+                key: username  
+          - name: refund_db_password
+            valueFrom:
+              secretKeyRef:
+                name: staging-db-secret
+                key: password 
         envFrom: []
-        image: "rajkumar/refund-data-service:0.1.0"
-        imagePullPolicy: "IfNotPresent"
+        image: "rajkumar/refund-data-service:0.2.0"
+        imagePullPolicy: "Always"
         name: "refund-data-service-deployment"
         ports:       
         - containerPort: 8280
