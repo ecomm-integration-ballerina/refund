@@ -15,7 +15,7 @@ steps:
       - ballerina build refund-data-service
 
   build_image:
-    title: Building Docker Image
+    title: Building Docker Images
     type: build
     image_name: rajkumar/refund-data-service
     working_directory: ./target/kubernetes/refund-data-service/docker/
