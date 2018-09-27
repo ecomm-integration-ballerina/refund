@@ -40,7 +40,7 @@ steps:
       branch:
         only:
           - master
-    file_path: ./kubernetes/refund_inbound_dispatcher_deployment.yaml
+    file_path: ./refund-inbound-dispatcher/kubernetes/refund_inbound_dispatcher_deployment.yaml
 stages: []
 
 
