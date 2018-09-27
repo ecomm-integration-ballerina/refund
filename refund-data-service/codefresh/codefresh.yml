@@ -18,9 +18,9 @@ steps:
     title: Building Docker Image
     type: build
     image_name: rajkumar/refund-data-service
-    working_directory: ./target/kubernetes/refund-data-service/docker/
+    working_directory: ./
     tag: 0.1.0
-    dockerfile: Dockerfile
+    dockerfile: refund-data-service/docker/Dockerfile
 
   push_image:
     title: Pushing to Docker Registry
@@ -30,11 +30,16 @@ steps:
     registry: dockerhub
 
   deploy_to_k8s:
-    title: Deploying ballerina-generated k8s artifacts
-    image: 'codefresh/kube-helm:master'
-    commands:
-      - kubectl config use-context ecomm-integration-ballerina@ecomm-integration-ballerina
-      - kubectl apply -f ${{CF_VOLUME_PATH}}/refund/target/kubernetes/refund-data-service/ 
+    title: Deploying k8s artifacts
+    type: deploy
+    kind: kubernetes
+    cluster: ecomm-integration-ballerina@ecomm-integration-ballerina
+    namespace: default
+    when:
+      branch:
+        only:
+          - master
+    file_path: ./refund-data-service/kubernetes/refund-data-service_deployment.yaml
 stages: []
 
 
