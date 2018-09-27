@@ -32,14 +32,23 @@ spec:
           - name: ecomm_backend_refund_sftp_port
             value: "22"    
           - name: ecomm_backend_refund_sftp_username
-            value: "ecomm0xxx" 
+            valueFrom:
+              secretKeyRef:
+                name: ecomm-back-end-sftp-secret
+                key: username 
           - name: ecomm_backend_refund_sftp_password
-            value: "ec0mmoxxx" 
+            valueFrom:
+                secretKeyRef:
+                  name: ecomm-back-end-sftp-secret
+                  key: password 
           - name: ecomm_backend_refund_sftp_path
-            value: "/Users/ecomm0xxx/projects/ecomm/sftp/refund"                                                               
+            valueFrom:
+                secretKeyRef:
+                  name: ecomm-back-end-sftp-secret
+                  key: path                                                                
         envFrom: []
         image: "rajkumar/refund-inbound-dispatcher:0.1.0"
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         name: "refund-inbound-dispatcher-deployment"
         ports:        
         volumeMounts: []
