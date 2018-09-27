@@ -11,7 +11,6 @@ steps:
     fail_fast: true
     commands:
       - cp -r refund-data-service/dependencies/packages/dependencies/* /ballerina/runtime/bre/lib/
-      - cp -r refund-data-service/dependencies/packages/balo/* /ballerina/runtime/lib/repo/
       - ballerina init
       - ballerina build refund-data-service
 
