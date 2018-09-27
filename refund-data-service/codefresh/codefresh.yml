@@ -31,15 +31,12 @@ steps:
 
   deploy_to_k8s:
     title: Deploying k8s artifacts
-    type: deploy
-    kind: kubernetes
-    cluster: ecomm-integration-ballerina@ecomm-integration-ballerina
-    namespace: default
-    when:
-      branch:
-        only:
-          - master
-    file_path: ./refund-data-service/kubernetes/refund-data-service_deployment.yaml
+    image: 'codefresh/kube-helm:master'
+    commands:
+      - kubectl config use-context ecomm-integration-ballerina@ecomm-integration-ballerina
+      - kubectl apply -f ${{CF_VOLUME_PATH}}/refund/refund-data-service/kubernetes/refund_data_service_deployment.yaml
+      - kubectl apply -f ${{CF_VOLUME_PATH}}/refund/refund-data-service/kubernetes/refund_data_service_svc.yaml
+
 stages: []
 
 
