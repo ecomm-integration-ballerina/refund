@@ -10,7 +10,7 @@ endpoint http:Client refundDataServiceEndpoint {
 };
 
 endpoint http:Client ecommFrontendRefundAPIEndpoint {
-    url: config:getAsString("ecomm-frontend.refund.api.url")
+    url: config:getAsString("ecomm_frontend.refund.api.url")
 };
 
 int count;
@@ -19,7 +19,7 @@ int interval = config:getAsInt("refund.outbound.task.interval");
 int delay = config:getAsInt("refund.outbound.task.delay");
 int maxRetryCount = config:getAsInt("refund.outbound.task.maxRetryCount");
 int maxRecords = config:getAsInt("refund.outbound.task.maxRecords");
-string apiKey = config:getAsString("ecomm-frontend.refund.api.key");
+string apiKey = config:getAsString("ecomm_frontend.refund.api.key");
 
 
 function main(string... args) {

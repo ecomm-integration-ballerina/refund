@@ -1,0 +1,43 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "refund-outbound"
+  name: "refund-outbound-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "refund-outbound"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env:
+          - name: ecomm_frontend_refund_api_url
+            value: "http://ecomm-front-end-mock-service.default.svc.cluster.local:8280/ecomm-frontend/v2/payments/ref"
+          - name: ecomm_frontend_refund_api_key
+            value: "l7xx29ab5fa8fd5249419790cfba16f6a9fc" 
+          - name: refund_data_service_url
+            value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"                                                               
+        envFrom: []
+        image: "rajkumar/refund-outbound:0.1.0"
+        imagePullPolicy: "Always"
+        name: "refund-outbound-deployment"
+        ports:        
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

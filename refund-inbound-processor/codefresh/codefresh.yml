@@ -1,0 +1,42 @@
+version: '1.0'
+steps:
+  setting_permissions:
+    image: bash
+    commands:
+      - chmod -R 777 /codefresh/volume
+  
+  build_package:
+    title: building refund-inbound-processor package
+    image: ballerina/ballerina-platform:0.981.1
+    fail_fast: true
+    commands:
+      - cp -r refund-inbound-processor/dependencies/packages/dependencies/* /ballerina/runtime/bre/lib/
+      - cp -r refund-inbound-processor/dependencies/packages/balo/* /ballerina/runtime/lib/repo/
+      - ballerina init
+      - ballerina build refund-inbound-processor
+
+  build_image:
+    title: building refund-inbound-processor docker image
+    type: build
+    image_name: rajkumar/refund-inbound-processor
+    working_directory: ./
+    tag: 0.1.0
+    dockerfile: refund-inbound-processor/docker/Dockerfile
+
+  push_image:
+    title: pushing docker image refund-inbound-processor to docker hub
+    type: push
+    candidate: '${{build_image}}'
+    tag: 0.1.0
+    registry: dockerhub
+
+  deploy_to_k8s:
+    title: deploying refund-inbound-processor k8s artifacts
+    image: 'codefresh/kube-helm:master'
+    commands:
+      - kubectl config use-context ecomm-integration-ballerina@ecomm-integration-ballerina
+      - kubectl apply -f ${{CF_VOLUME_PATH}}/refund/refund-inbound-processor/kubernetes/refund_inbound_processor_deployment.yaml
+
+stages: []
+
+

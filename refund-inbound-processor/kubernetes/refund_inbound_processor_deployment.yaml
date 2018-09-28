@@ -30,13 +30,22 @@ spec:
           - name: ecomm_backend_refund_sftp_host
             value: "refund-sftp-headless-service.default.svc.cluster.local"
           - name: ecomm_backend_refund_sftp_port
-            value: "22"    
+            value: "22"   
           - name: ecomm_backend_refund_sftp_username
-            value: "ecomm0xxx" 
+            valueFrom:
+              secretKeyRef:
+                name: ecomm-back-end-sftp-secret
+                key: username 
           - name: ecomm_backend_refund_sftp_password
-            value: "ec0mmoxxx" 
+            valueFrom:
+                secretKeyRef:
+                  name: ecomm-back-end-sftp-secret
+                  key: password 
           - name: ecomm_backend_refund_sftp_path
-            value: "/Users/ecomm0xxx/projects/ecomm/sftp/refund" 
+            valueFrom:
+                secretKeyRef:
+                  name: ecomm-back-end-sftp-secret
+                  key: path               
           - name: ecomm_backend_refund_etl_interval
             value: "10000" 
           - name: ecomm_backend_refund_etl_initialDelay
@@ -45,7 +54,7 @@ spec:
             value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"
         envFrom: []
         image: "rajkumar/refund-inbound-processor:0.1.0"
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: "Always"
         name: "refund-inbound-processor-deployment"
         ports:        
         volumeMounts: []
