@@ -6,6 +6,7 @@ metadata:
   finalizers: []
   labels:
     app: "refund-data-service"
+    integration: "refund"
   name: "refund-data-service-deployment"
   namespace: "default"
   ownerReferences: []
@@ -17,6 +18,7 @@ spec:
       finalizers: []
       labels:
         app: "refund-data-service"
+        integration: "refund"
       ownerReferences: []
     spec:
       containers:
@@ -40,7 +42,7 @@ spec:
                 name: staging-db-secret
                 key: password 
         envFrom: []
-        image: "rajkumar/refund-data-service:0.2.0"
+        image: "rajkumar/refund-data-service:0.1.0"
         imagePullPolicy: "Always"
         name: "refund-data-service-deployment"
         ports:       

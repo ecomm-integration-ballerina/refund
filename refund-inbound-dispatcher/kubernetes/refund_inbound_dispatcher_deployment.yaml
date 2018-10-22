@@ -6,6 +6,7 @@ metadata:
   finalizers: []
   labels:
     app: "refund-inbound-dispatcher"
+    integration: "refund"
   name: "refund-inbound-dispatcher-deployment"
   namespace: "default"
   ownerReferences: []
@@ -17,6 +18,7 @@ spec:
       finalizers: []
       labels:
         app: "refund-inbound-dispatcher"
+        integration: "refund"
       ownerReferences: []
     spec:
       containers:
@@ -42,10 +44,7 @@ spec:
                   name: ecomm-back-end-sftp-secret
                   key: password 
           - name: ecomm_backend_refund_sftp_path
-            valueFrom:
-                secretKeyRef:
-                  name: ecomm-back-end-sftp-secret
-                  key: path                                                                
+            value: "/var/sftp/refund"                                                               
         envFrom: []
         image: "rajkumar/refund-inbound-dispatcher:0.1.0"
         imagePullPolicy: "Always"

@@ -1,4 +1,4 @@
-FROM ballerina/ballerina:0.981.1
+FROM ballerina/ballerina:0.982.0
 LABEL maintainer="rajkumarr@wso2.com"
 
 COPY target/refund-inbound-dispatcher.balx /home/ballerina

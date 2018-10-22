@@ -1,2 +1,4 @@
 ballerina build refund-data-service
-docker build -t refund-data-service:v0.1 -f refund-data-service/docker/Dockerfile .
+docker build -t refund-data-service:0.1.0 -f refund-data-service/docker/Dockerfile .
+kubectl delete -f refund-data-service/kubernetes/refund_data_service_deployment.yaml
+kubectl create -f refund-data-service/kubernetes/refund_data_service_deployment.yaml

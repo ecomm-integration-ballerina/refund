@@ -28,13 +28,13 @@ function main(string... args) {
 
     function(error) onErrorFunction = handleError;
 
-    log:printInfo("Starting refunds ETL"+interval);
+    log:printInfo("Starting refunds ETL");
 
     timer = new task:Timer(onTriggerFunction, onErrorFunction,
         interval, delay = delay);
 
     timer.start();
-    runtime:sleep(200000);
+    runtime:sleep(20000000);
 }
 
 function doRefundETL() returns  error? {
@@ -166,13 +166,7 @@ function getRefundPayload(Refund refund) returns (json) {
     return refundPayload;
 }
 
-function handleError(error e) {
-    log:printError("Error in processing refunds to ecomm-frontend", err = e);
-    // I don't want to stop the ETL if backend is down
-    // timer.stop();
-}
-
-function batchUpdateProcessFlagsToP (Refund[] refunds) returns boolean{
+function batchUpdateProcessFlagsToP (Refund[] refunds) returns boolean {
 
     json batchUpdateProcessFlagsPayload;
     foreach i, refund in refunds {
@@ -236,4 +230,10 @@ function updateProcessFlag(int tid, int retryCount, string processFlag, string e
 function notifyOperation()  {
     // sending email alerts
     log:printInfo("Notifying operations");
+}
+
+function handleError(error e) {
+    log:printError("Error in processing refunds to ecomm-frontend", err = e);
+    // I don't want to stop the ETL if backend is down
+    // timer.stop();
 }

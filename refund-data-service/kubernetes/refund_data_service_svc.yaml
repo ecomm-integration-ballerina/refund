@@ -6,6 +6,7 @@ metadata:
   finalizers: []
   labels:
     app: "refund-data-service"
+    integration: "refund"
   name: "refund-data-service-service"
   namespace: "default"
   ownerReferences: []
@@ -17,4 +18,3 @@ spec:
     name: http              
   selector:
     app: "refund-data-service"
-  type: "NodePort"
