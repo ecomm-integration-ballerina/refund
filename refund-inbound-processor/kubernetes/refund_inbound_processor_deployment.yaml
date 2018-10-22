@@ -6,6 +6,7 @@ metadata:
   finalizers: []
   labels:
     app: "refund-inbound-processor"
+    integration: "refund"
   name: "refund-inbound-processor-deployment"
   namespace: "default"
   ownerReferences: []
@@ -17,6 +18,7 @@ spec:
       finalizers: []
       labels:
         app: "refund-inbound-processor"
+        integration: "refund"
       ownerReferences: []
     spec:
       containers:
@@ -42,16 +44,13 @@ spec:
                   name: ecomm-back-end-sftp-secret
                   key: password 
           - name: ecomm_backend_refund_sftp_path
-            valueFrom:
-                secretKeyRef:
-                  name: ecomm-back-end-sftp-secret
-                  key: path               
+            value: "/var/sftp/refund"             
           - name: ecomm_backend_refund_etl_interval
             value: "10000" 
           - name: ecomm_backend_refund_etl_initialDelay
             value: "500"                         
           - name: refund_api_url
-            value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"
+            value: "http://refund-data-service-service.default.svc.cluster.local:8280/data/refund"
         envFrom: []
         image: "rajkumar/refund-inbound-processor:0.1.0"
         imagePullPolicy: "Always"

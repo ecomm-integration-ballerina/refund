@@ -54,10 +54,10 @@ function handleRefund(string path) returns boolean {
     var refundOrError = refundSFTPClient -> get(path);
     match refundOrError {
 
-        io:ByteChannel channel => {
-            io:CharacterChannel characters = new(channel, "utf-8");
+        io:ByteChannel byteChannel => {
+            io:CharacterChannel characters = new(byteChannel, "utf-8");
             xml refundXml = check characters.readXml();
-            _ = channel.close();
+            _ = byteChannel.close();
 
             json refunds = generateRefundsJson(refundXml);
 

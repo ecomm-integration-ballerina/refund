@@ -22,7 +22,7 @@ int maxRecords = config:getAsInt("refund.outbound.task.maxRecords");
 string apiKey = config:getAsString("ecomm_frontend.refund.api.key");
 
 
-function main(string... args) {
+public function main(string... args) {
 
     (function() returns error?) onTriggerFunction = doRefundETL;
 
@@ -34,7 +34,7 @@ function main(string... args) {
         interval, delay = delay);
 
     timer.start();
-    runtime:sleep(20000000);
+    runtime:sleep(2000000000);
 }
 
 function doRefundETL() returns  error? {
@@ -43,7 +43,7 @@ function doRefundETL() returns  error? {
 
     var response = refundDataServiceEndpoint->get("?maxRecords=" + maxRecords
             + "&maxRetryCount=" + maxRetryCount + "&processFlag=N,E");
-
+    
     match response {
         http:Response resp => {
             match resp.getJsonPayload() {
@@ -64,14 +64,12 @@ function doRefundETL() returns  error? {
                 error err => {
                     log:printError("Response from refundDataEndpoint is not a json : " + 
                                     err.message, err = err);
-                    throw err;
                 }
             }
         }
         error err => {
             log:printError("Error while calling refundDataEndpoint : " + 
                             err.message, err = err);
-            throw err;
         }
     }
 

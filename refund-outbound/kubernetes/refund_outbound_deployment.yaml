@@ -6,6 +6,7 @@ metadata:
   finalizers: []
   labels:
     app: "refund-outbound"
+    integration: "refund"
   name: "refund-outbound-deployment"
   namespace: "default"
   ownerReferences: []
@@ -17,6 +18,7 @@ spec:
       finalizers: []
       labels:
         app: "refund-outbound"
+        integration: "refund"
       ownerReferences: []
     spec:
       containers:
@@ -28,9 +30,9 @@ spec:
           - name: ecomm_frontend_refund_api_key
             value: "l7xx29ab5fa8fd5249419790cfba16f6a9fc" 
           - name: refund_data_service_url
-            value: "http://refund-data-service-service.default.svc.cluster.local:8280/refund"                                                               
+            value: "http://refund-data-service-service.default.svc.cluster.local:8280/data/refund"                                                               
         envFrom: []
-        image: "rajkumar/refund-outbound:0.1.0"
+        image: "rajkumar/refund-outbound:0.2.0"
         imagePullPolicy: "Always"
         name: "refund-outbound-deployment"
         ports:        

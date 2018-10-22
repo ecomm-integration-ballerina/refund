@@ -7,7 +7,7 @@ endpoint http:Listener refundListener {
 };
 
 @http:ServiceConfig {
-    basePath: "/refund"
+    basePath: "/data/refund"
 }
 service<http:Service> refundAPI bind refundListener {
 
