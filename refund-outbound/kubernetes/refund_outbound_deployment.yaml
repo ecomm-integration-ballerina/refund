@@ -26,7 +26,7 @@ spec:
         command: []
         env:
           - name: ecomm_frontend_refund_api_url
-            value: "http://ecomm-front-end-mock-service.default.svc.cluster.local:8280/ecomm-frontend/v2/payments/ref"
+            value: "http://payment-front-end-mock-service.default.svc.cluster.local:8280/ecomm-frontend/v2/payments/ref"
           - name: ecomm_frontend_refund_api_key
             value: "l7xx29ab5fa8fd5249419790cfba16f6a9fc" 
           - name: refund_data_service_url
