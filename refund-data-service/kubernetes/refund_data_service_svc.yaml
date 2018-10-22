@@ -6,7 +6,6 @@ metadata:
   finalizers: []
   labels:
     app: "refund-data-service"
-    integration: "refund"
   name: "refund-data-service-service"
   namespace: "default"
   ownerReferences: []
